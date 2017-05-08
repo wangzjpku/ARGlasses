@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:stretchColumns="1">
+    <TableRow>
+        <TextView
+            android:text="Latitude:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/latitude_text"/>
+    </TableRow>
+   <TableRow>
+        <TextView
+            android:text="Longitude:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/longitude_text"/>
+    </TableRow>
+   <TableRow>
+        <TextView
+            android:text="Distance:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/distance_text"/>
+    </TableRow>
+    <TableRow>
+        <TextView
+            android:text="Average Speed:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/avg_speed_text"/>
+    </TableRow> 
+    <TableRow>
+        <TextView
+            android:text="Steps:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/steps_text"/>
+    </TableRow>
+    <TableRow>
+        <TextView
+            android:text="Orientation:"
+            android:padding="3dip" />
+        <TextView
+            android:text=""
+            android:gravity="right"
+            android:padding="3dip" android:id="@+id/orientation_text"/>
+    </TableRow>
+</TableLayout>
+    
+<Button android:id="@+id/start_service_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Service" />
+<Button android:id="@+id/change_status_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Status" />
+<Button android:id="@+id/stop_service_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Service" />
+<Button android:id="@+id/update_values_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update Values" />            
+ <Button android:id="@+id/exit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Exit" />
+               
+</LinearLayout>

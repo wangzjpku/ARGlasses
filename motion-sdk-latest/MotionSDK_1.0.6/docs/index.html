@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>BitGym SDK : Motion SDK</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            BitGym SDK : Motion SDK
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Sep 27, 2012 by <font color="#0050B2">keerthik</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h1 id="MotionSDK-VersionChangeLog">Version Change Log</h1><p>The latest version of this document can be found <a href="https://bitgym.atlassian.net/wiki/display/SDK/Motion+SDK" rel="nofollow">here</a>.</p><h3 id="MotionSDK-Version1.0.4">Version 1.0.4</h3><p>(<a href="https://bitgym.atlassian.net/builds/browse/2012-09-27" class="external-link" rel="nofollow">2012-09-27</a>)</p><p>Changes in 1.0.4</p><ul><li>Tracking algorithms:<br /><ul><li>Efficiency improved by about 100% - <strong>effectively doubling performance</strong></li></ul></li><li>Android: <br /><ul><li>SDK no longer causes the app to close and dump memory inexplicably on turning on the tracking - Ice Cream Sandwich (4.0.0) and later. This problem did not exist for older OS's</li></ul></li><li>Unity: <br /><ul><li>Fixed a bug that caused the feedback to no longer work if it was enabled, disabled, then enabled again.</li></ul></li></ul><h3 id="MotionSDK-Version1.0.3">Version 1.0.3</h3><p>(<a href="https://bitgym.atlassian.net/builds/browse/2012-09-24" class="external-link" rel="nofollow">2012-09-24</a>)</p><p>Changes in 1.0.3</p><ul><li>Unity:<br /><ul><li>Fixed a bug where BGBodyReading didn't parse the fractional seconds in the timestamp reading. This only showed itself while running on an iOS or Android device. </li><li>Fixed a bug where disabling then enabling the head position feedback prefab would make it cease to update future frames</li><li>Android build script copies over icon from Unity project</li></ul></li><li>Android:<br /><ul><li>Tracking works even after a pause/unpause of the application</li><li>Auto-rotate no longer crashes the app, but is still in alpha: It has only been tested on a few devices, and there is significant delay in reactivating tracking. <br /><strong>It is not officially supported yet, and it is recommended to lock the rotation of your apps.</strong></li></ul></li></ul><h3 id="MotionSDK-Note">Note</h3><ul><li>Portrait mode is not fully supported on iOS or Android. It is in beta and untested.</li><li>Auto-rotate left active on the device is not currently supported on Android.</li></ul><h1 id="MotionSDK-API">API</h1><p>The most important system to understand is what a BodyReading returned by the BitGym algorithms.</p><p>The members of the BodyReading class are</p><ul><li><strong>x</strong>: The position of the player with respect to the extent of the camera field of view assigned to that player. range: -1.0 (left extreme), 1.0 (right extreme); center: 0.0; type: public float</li><li><strong>y</strong>: The position of the player with respect to the extent of the camera field of view assigned to that player. range: -1.0 (top extreme), 1.0 (bottom extreme); center: 0.0; type: public float</li><li><strong>z</strong>: An indication of the distance of the player from the camera. The value of this field indicates the ratio of the area of the detected player to the total area of the camera field of view assigned to that player. range: 0.2 (player detected but minimum size), 1.0 (player filling 100% of camera FOV); type: public float</li><li><strong>r</strong>: The angle of tilt of the detected player torso with respect to the vertical normal. range: -0.3*PI (leaning 60 degrees to the left of the vertical), .3*PI (leaning 60 degrees to the right of the vertical); type: public float</li><li><strong>confidence</strong>: A measure of how reliable and confident the algorithm is for this reading. range: 0.0 (no confidence), 1.0 (player locked); type: public float</li><li><strong>timestamp</strong>: The number of microseconds that have passed since the first reading was read in the current application life-cycle. range: 0, Unbounded; type: public double</li><li><strong>playerNumber</strong>: The index of the player to which the current reading is associated to. range: (0, 1); type: public int</li><li><strong>toString()</strong>: returns all the above values, in mentioned order as a '|' delimited string, for message passing. type: function. return type: string</li></ul><p> </p><h1 id="MotionSDK-Unity">Unity</h1><ul><li><p>Tested in Unity3D 3.5 on OSX and Windows</p></li><li>Unity free allows you to prototype in the editor, or even build unity web player and desktop builds.</li><li>Unity iOS and Android licenses will allow you to build to iOS and Android respectively.<br /><br /></li></ul><p>Note that Unity editor/web/desktop motion tracking uses the mono runtime and unity webcam access. Both of these facts make it much slower than our platform optimized iOS and Android libraries. When you deploy to Android / iOS the platform optimized library is automatically used. The build section below has more details.  </p><p>Also note that currently we will only grant public or commercial licenses for mobile builds - not web or desktop. You can use those for internal testing though!</p><h3 id="MotionSDK-Install">Install</h3><p>Just double-click the MotionSDK_x.x.x.unitypackage and it will install into your currently open Unity project</p><h3 id="MotionSDK-Use">Use</h3><p>To turn on motion tracking simply have a GameObject subscribe to motion updates. If even one subscription is active, all the machinery necessary for tracking will automatically spin up. Similarly if you remove all the listeners, it will automatically shut down. </p><p>Here's a simple script to move a GameObject according to player motion:</p><p class="p1"> </p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">using UnityEngine;
+public class BodyMovement : MonoBehaviour, IBGBodyReadingListener{
+	public int player = 0;
+	private Vector3 startPosition;
+	private Vector3 startScale;
+		
+	void Start(){
+		BGMotionManager.GetInstance().AddBodyReadingListener(this);
+		BGMotionManager.GetInstance().SetPlayerCount(1);
+		startPosition = transform.position;
+		startScale = transform.localScale;
+	}
+	 
+	public void HandleReading(BGBodyReading reading) {
+		//there is a reading generated for each player id each camera frame, check that we&#39;re reading the right one. 
+		if(player == reading.GetPlayer()){
+			//move based on the reading values!
+			transform.position = startPosition + new Vector3(reading.GetX()*10.0f, reading.GetY()*10.0f, 0.0f);
+			transform.localRotation = Quaternion.Euler(new Vector3(0, 0, reading.GetTilt()*Mathf.Rad2Deg));
+			transform.localScale = startScale * reading.GetScale() * 2.0f;	
+		}
+	}
+}</pre>
+</div></div><p class="p2"> If you'd like to have two players just call:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">BGMotionManager.GetInstance().SetPlayerCount(2);</pre>
+</div></div><p class="p2">If you don't want a webcam or want to debug using the keyboard keys to generate fake player motion, you can call:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">BGMotionManager.GetInstance().SetEditorKeyboardMode(); </pre>
+</div></div><p>to switch back to webcam:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">BGMotionManager.GetInstance().SetEditorWebcamMode();</pre>
+</div></div><p> </p><p>To show player feedback, just drag a <strong>BodyFeedbackWidget</strong> prefab into the scene and position it. Note that there can only be one, although you could share the generated texture across renderers if you needed more. </p><h3 id="MotionSDK-UnityiOSBuild">Unity iOS Build</h3><p>For iOS, build as normal creating a new xcode project. The necessary .mm code and .a library will be copied into the project automatically. It should build and run just fine. </p><h3 id="MotionSDK-UnityAndroidBuild">Unity Android Build</h3><ol><li>Copy out the AndroidBGProject from the SDK into your Unity project folder<br />- NOTE: This folder cannot be placed into the Assets folder because it contains Assembly-Csharp-firstpass.dll, etc. which is illegal inside Assets</li><li>Stage the project for importing into Eclipse<br /><ol><li>Mac: Just execute &quot;Build&quot; via Unity (not &quot;Build and Run&quot;) to stage project. Use any apk name you want, we won't be using it.</li><li>Windows: The PostPlayerBuildScript for Windows development environments will be coming in a future version. The manual steps to stage your Unity project are:<br /><ol><li>Create a folder &lt;unity project folder&gt;/Unity Player</li><li>Execute &quot;Build&quot; via Unity to generate the &quot;Temp/Staging Area&quot; folder inside your project.</li><li>Navigate to &lt;unity project folder&gt;/Temp/Staging Area and copy (and overwrite) the contents into &lt;unity project folder&gt;/UnityPlayer</li><li>You will need to do step (ii) and (iii) each time you make any changes to your Unity project and want to build to a device</li></ol></li></ol></li><li><strong>Prepare Unity Project as Eclipse project</strong><br />Into your Eclipse workspace, import the following projects:</li></ol><ol><li style="list-style-type: none;background-image: none;"><ol><li>Import UnityPlayer via &quot;From existing Android code&quot;. In Properties-&gt;Android, check &quot;Library Project&quot;</li><li>Import MotionSDK_Android/BitGymMotionSDK via &quot;From existing Android code&quot;. In Properties-&gt;Android, check &quot;Library Project&quot;</li><li>Import AndroidBGProject &quot;From existing Android code&quot;</li><li>In AndroidBGProject's Properties-&gt;Android, clean up any broken library links, and link UnityPlayer and BitGymMotionSDK projects as library projects</li><li>Edit the AndroidManifest as needed if you need any special permissions</li><li>Refactor package name (to replace default com.companyname.appname)<br />NOTE: Currently, this does not utilize the name you give your package/app within Unity, and you need to manually set it in this project</li><li>Build the UnityBitGymActivity project! Follow <a href="http://developer.android.com/tools/building/index.html" class="external-link" rel="nofollow">these instructions</a> for additional details on building your Android project.</li></ol></li></ol><h1 id="MotionSDK-iOS">iOS</h1><h3 id="MotionSDK-Install.1">Install</h3><p>Just include the MotionSDK_iOS folder which includes the headers and compiled libraries you need.</p><h3 id="MotionSDK-Use.1">Use</h3><p>To turn on motion tracking simply have a NSObject observe BGBodyReading updates. If even one subscription is active, all the machinery necessary for tracking will automatically spin up. Similarly if you remove all the listeners, it will automatically shut down. </p><p class="p1"> </p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">#import &quot;BGBodyReadingObservable.h&quot;
+ 
+//inside of any NSObject call this:   
+[[BGBodyReadingObservable sharedBodyReadingObservable] addObserver:self forKeyPath:BODY_READING_KEYPATH];
+
+
+//and define a method like this:
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqual:BODY_READING_KEYPATH])
+    {
+        NSMutableArray * positions = [change objectForKey:NSKeyValueChangeNewKey];
+        for(BGBodyReading* position in positions){ //will loop once for each player actively being tracked
+            NSLog(@&quot;x: %f player: %d&quot;, [position x], [position playerNumber]);
+        }
+    }
+}
+    [[BGBodyReadingObservable sharedBodyReadingObservable] setPlayerCount:2];
+    [[BGBodyReadingObservable sharedBodyReadingObservable] setPlayerCount:1];     
+
+    [[BGBodyReadingObservable sharedBodyReadingObservable] beginRenderingFeedbackToCALayer:[feedback layer]];</pre>
+</div></div><p> </p><p>To change the player count:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">[[BGBodyReadingObservable sharedBodyReadingObservable] setPlayerCount:2];     </pre>
+</div></div><p> </p><p>To render the tracker feedback to screen in a UIView* called feedbackUIView:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">[[BGBodyReadingObservable sharedBodyReadingObservable] beginRenderingFeedbackToCALayer:[feedbackUIView layer]];</pre>
+</div></div><h3 id="MotionSDK-Build">Build</h3><p>Build to your device as normal!</p><p>Note there is no simulator support for the camera, so we don't even bother distributing a i386 version of our library to run in that context. We could start providing one if this proved to be a road block for you. </p><h3 id="MotionSDK-iOS C/C++applications">iOS  C / C++ applications</h3><p>If your game is mostly written in C or C++ you could chose to use our C API. See BitGymMotion.h for details.</p><h1 id="MotionSDK-Android">Android</h1><h3 id="MotionSDK-Install.2">Install</h3><ul><li>Create a new Eclipse Android Application project for use as your BitGym-enabled Android app.</li><li>Import MotionSDK_Android-&gt;BitGymMotionSDK project into your workspace using Import-&gt;Android-&gt;Existing Code into Workspace.</li><li>Make sure it is marked as an Android Library project in Properties-&gt;Android-&gt;Is Library (checked)</li><li>Link BitGymMotionSDK as a library project to your Eclipse project from Properties-&gt;Android-&gt;Library Pane-&gt;Add and select the BitGymMotionSDK</li></ul><h3 id="MotionSDK-Use.2">Use</h3><p>[Refer to: SampleMotionGame.java, in project BitGymMotionSDK Sample]</p><p>RECOMMENDED: If you have never built an Android app in Eclipse before, we recommend you <a href="http://developer.android.com/sdk/installing/installing-adt.html" class="external-link" rel="nofollow">start here</a> and return to this point when you're comfortable. This wiki assumes basic familiarity with making Android apps and the Eclipse IDE with the ADT plugin.</p><ul><li>Extend BitGymMotionActivity with your activity that uses BitGym Motion controls</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">public class FunMotionActivity extends BitGymMotionActivity     </pre>
+</div></div><p> </p><ul><li>Ensure your app layout includes a FrameLayout to house the camera preview surface.  An example Layout file (edit your res-&gt;layout-&gt;activity_main.xml file) is as follows</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    android:id=&quot;@+id/relativeLayout1&quot;
+    android:layout_width=&quot;fill_parent&quot;
+    android:layout_height=&quot;fill_parent&quot;
+    android:orientation=&quot;vertical&quot; &gt;
+    &lt;FrameLayout
+        android:id=&quot;@+id/frameLayout1&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot; &gt;
+    &lt;/FrameLayout&gt;
+&lt;/RelativeLayout&gt;
+     </pre>
+</div></div><p>NOTE: FrameLayouts are best used to contain just a single element. Encapsulate the rest of your app's content in a separate Layout container</p><ul><li>In your activity's OnCreate, do</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">FrameLayout layout = (FrameLayout) findViewById(R.id.frameLayout1);
+        layout.addView(mPreview);     </pre>
+</div></div><p>NOTE: The preview has to be added to a framelayout, to activate the camera to allow the BitGymSDK to do its thing (inexplicable Android thing)<br />TIP: Call the optional call 'mPreview.Hide();' to effectively hide the camera preview from sight</p><ul><li>Define a reading listener in your activity, similar to</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">bodyReadingListener = new ReadingListener&lt;BGBodyReadingData&gt;() {
+    public void OnNewReading(BGBodyReadingData reading) {
+       // Use the data from &#39;reading&#39; as input in your app, i.e.,
+       // functionUsingXforPlayer(reading.x, reading.playerNumber);
+       //Log.i(&quot;ExampleListener&quot;, reading.toString());
+    }
+ };</pre>
+</div></div><p> </p><ul><li>Call RegisterBodyListener from the activity whenever you want to start tracking people and executing the listener</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">RegisterBodyReadingUpdateListener(bodyReadingListener);</pre>
+</div></div><p> </p><ul><li>Call UnregisterBodyListener whenever you want to no longer execute that listener</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">UnregisterBodyReadingUpdateListener(bodyReadingListener);</pre>
+</div></div><p>The following complete code example for a simple activity can be used as the main activity:</p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">public class SampleMotionGame extends BitGymMotionActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Hide the window title.
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
+        bodyReadingListener = new ReadingListener&lt;BGBodyReadingData&gt;() {
+            public void OnNewReading(BGBodyReadingData reading) {
+                Log.i(&quot;ExampleListener&quot;, reading.toString());
+            }
+        };
+        RegisterBodyReadingUpdateListener(bodyReadingListener);
+        
+        setContentView(R.layout.activity_sample_motion_game);
+        FrameLayout layout = (FrameLayout) findViewById(R.id.frameLayout2);
+        //mPreview.Hide();
+        layout.addView(mPreview);
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_sample_motion_game, menu);
+        return true;
+    }    
+}</pre>
+</div></div><p>TIP: Regular Android dev tip within Eclipse, hit &lt;command&gt;+&lt;shift&gt;+O to import all unresolved references.</p><ul><li>To change the player count (for example, to set to two players, here):</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">BitGymMotion.BGSetPlayerCount(2);   </pre>
+</div></div><p> Players are 0-indexed, i.e., they are identified as player 0, player 1 (player 2 and player 3 coming soon!)</p><ul><li>Tracker Feedback - This is currently only supported in the Unity version. An upcoming version will contain functionality for using a GLSurfaceView to render the feedback texture generated by the BitGymSDK.</li><li>Finally, you need to add permissions for the camera in your Android Manifest.xml file to be able to provide camera access for the BitGym SDK! Add the following block to your AndroidManifest.xml file, above the &lt;application ... &gt; tag, after the &lt;uses-sdk .. /&gt; tag</li></ul><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="theme: Confluence; brush: java; gutter: false" style="font-size:12px;">&lt;uses-permission 
+    android:name=&quot;android.permission.CAMERA&quot; /&gt;
+    
+&lt;uses-feature 
+    android:name=&quot;android.hardware.camera&quot;
+    android:required=&quot;true&quot;/&gt;
+    
+&lt;uses-feature 
+    android:name=&quot;android.hardware.camera.front&quot;
+    android:required=&quot;true&quot;/&gt;</pre>
+</div></div><h3 id="MotionSDK-Build.1">Build</h3><p>Build to your device as normal!</p><p>Note there is no simulator support for the camera, so we don't even bother distributing a i386 version of our library to run in that context. We could start providing one if this proved to be a road block for you. </p><h3 id="MotionSDK-iOS C/C++applications.1">iOS  C / C++ applications</h3><h6 id="MotionSDK-IfyourgameismostlywritteninCorC++youcouldchosetouseourCAPI.SeeBitGymMotion.hfordetails.">If your game is mostly written in C or C++ you could chose to use our C API. See BitGymMotion.h for details.</h6>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(https://bitgym.atlassian.net/wiki/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Sep 28, 2012 18:23</small></p>
+            </div>
+        </div>     </body>
+</html>

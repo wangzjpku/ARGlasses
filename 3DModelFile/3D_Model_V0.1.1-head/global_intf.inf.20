@@ -1,0 +1,8 @@
+﻿
+Calculation Type      Exact Result
+
+Pair  Component1        Component2         Vol. of Intf.       
+---------------------------------------------------------------
+1     SUPORT_FACE_HEAD  MIRROR             162.172496 mm^3     
+2     SUPORT_FACE_HEAD  SUPPORT_MANGFITER  898.200000 mm^3     
+3     MIRROR            MIRROR_BORAD       38.594969 mm^3      
