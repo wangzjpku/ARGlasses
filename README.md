@@ -1,4 +1,5 @@
-This AR Glasses
+This AR Glasses Project
+
 Most of the existing products are based on VR design, the core of the use of mobile phones to achieve, use unity3D development,
 So I design is the use of mobile phones as a core component, and can produce 3 d images, you can write a test program, achieve the effect of the virtual reality.
 
